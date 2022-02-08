@@ -2,12 +2,16 @@ import io.restassured.response.Response;
 import org.junit.Before;
 import org.junit.After;
 import org.junit.Test;
+
+import java.io.IOException;
+
 import static org.hamcrest.Matchers.*;
 
 public class CourierCreateTest {
 
     public CourierClient courierClient;
-    public int courierId;
+    public Courier courier;
+    private int courierId;
 
     @Before
     public void setUp() {
@@ -16,28 +20,28 @@ public class CourierCreateTest {
 
     @After
     public void tearDown() {
-        if (courierId != 0) {
-            courierClient.delete(courierId);
+        try {
+            courierId = courierClient.login(new Courier(courier.getLogin(), courier.getPassword())).then().extract().path("id");
+            if (courierId != 0) courierClient.delete(courierId);
+        } catch (NullPointerException e) {
+            System.out.println("Passed with Exception");
         }
     }
 
-    //Проверка, что курьера можно создать с обязательными полями, код ошибки и тело ответа
+    //Проверка, что курьера можно создать, код ошибки и тело ответа
     @Test
     public void testCourierIsCreatedWithRequiredFields() {
 
-        Courier courier = Courier.getRandom();
+        courier = Courier.getRandom();
         Response response = courierClient.create(courier);
         response.then().assertThat().body("ok", equalTo(true)).and().statusCode(201);
-
-        //Получаем ID для удаления курьера
-        courierId = courierClient.login(new Courier(courier.getLogin(),courier.getPassword())).then().extract().path("id");
     }
 
     //Проверка что нельзя создать двух одинаковых курьеров, код ошибки и тело ответа
     @Test
     public void testNotCreatedTwoEqualsCouriers() {
 
-        Courier courier = Courier.getRandom();
+        courier = Courier.getRandom();
         //Создаем первого курьера
         courierClient.create(courier);
         //Создаем второго курьера
@@ -49,12 +53,14 @@ public class CourierCreateTest {
     @Test
     public void testNotCreatedCouriersWithEqualsLogin() {
 
-        Courier courier = Courier.getRandom();
+        courier = Courier.getRandom();
         //Создаем первого курьера
+        String login = courier.getLogin();
         courierClient.create(courier);
+
         //Создаем второго курьера
-        courier.setPassword("123");
-        courier.setFirstName("Test");
+        Courier courier = Courier.getRandom();
+        courier.setLogin(login);
         Response response = courierClient.create(courier);
         response.then().assertThat().body("message", equalTo("Этот логин уже используется")).and().statusCode(409);
     }
@@ -63,34 +69,30 @@ public class CourierCreateTest {
     @Test
     public void testCreatedCouriersWithoutLogin() {
 
-        Courier courier = Courier.getRandom();
+        courier = Courier.getRandom();
         courier.setLogin("");
         Response response = courierClient.create(courier);
-        response.then().log().all().assertThat().body("message", equalTo("Недостаточно данных для создания учетной записи")).and().statusCode(400);
+        response.then().assertThat().body("message", equalTo("Недостаточно данных для создания учетной записи")).and().statusCode(400);
     }
 
     //Проверка что нельзя создать курьера без пароля, код ошибки и тело ответа
     @Test
     public void testCreatedCouriersWithoutPassword() {
 
-        Courier courier = Courier.getRandom();
+        courier = Courier.getRandom();
         courier.setPassword("");
         Response response = courierClient.create(courier);
         response.then().assertThat().body("message", equalTo("Недостаточно данных для создания учетной записи")).and().statusCode(400);
-
     }
 
     //Проверка чтобы создать курьера, нужно передать в ручку все обязательные поля;
     @Test
     public void testCreatedCouriersWithoutFirstName() {
 
-        Courier courier = Courier.getRandom();
+        courier = Courier.getRandom();
         courier.setFirstName("");
         Response response = courierClient.create(courier);
         response.then().assertThat().body("ok", equalTo(true)).and().statusCode(201);
-
-        //Получаем ID для удаления курьера
-        courierId = courierClient.login(new Courier(courier.getLogin(),courier.getPassword())).then().extract().path("id");
     }
 
 }

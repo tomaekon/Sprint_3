@@ -17,7 +17,7 @@ public class Order {
     private List<String> color;
 
 
-    public Order( List<String> color) {
+    public Order(List<String> color) {
         this.firstName = "Tamara";
         this.lastName = "Konashenkova";
         this.address = "Kommunarka";

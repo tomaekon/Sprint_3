@@ -10,6 +10,7 @@ public class Courier {
 
         return login;
     }
+
     public void setLogin(String login) {
         this.login = login;
     }
@@ -18,6 +19,7 @@ public class Courier {
 
         return password;
     }
+
     public void setPassword(String password) {
 
         this.password = password;
@@ -27,6 +29,7 @@ public class Courier {
 
         return firstName;
     }
+
     public void setFirstName(String firstName) {
 
         this.firstName = firstName;
@@ -37,12 +40,13 @@ public class Courier {
         this.password = password;
         this.firstName = firstName;
     }
+
     public Courier(String login, String password) {
         this.login = login;
         this.password = password;
     }
 
-    public Courier(){
+    public Courier() {
 
     }
 
